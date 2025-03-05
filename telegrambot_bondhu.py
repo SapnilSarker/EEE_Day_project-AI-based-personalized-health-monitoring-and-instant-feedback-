@@ -5,7 +5,7 @@ def telegram_bot_sendtext(bot_message, friend_chat_id):
     bot_token = '6408347648:AAEdmV3Guchw1fcji3yj2Oc7XbJXoTLGm8I'  # Replace with your bot token
     encoded_message = quote(bot_message)
     
-    send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={friend_chat_id}&parse_mode=Markdown&text={encoded_message}'
+    send_text = f' telegram bot link'
 
     try:
         response = requests.post(send_text)

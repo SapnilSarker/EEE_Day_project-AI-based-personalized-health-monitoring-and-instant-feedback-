@@ -4,3 +4,4 @@ This project presents a real-time health monitoring system that predicts CO₂ l
 Contributor: Sapnil Sarker Bipro, Md. Anik Hasan, Muhammad Sudipto Siam Dip
 
 Achievement: 2nd Prize, EEE Day 2023, RUET (National Event)
+![image](https://github.com/user-attachments/assets/42ee01e6-387f-4806-964c-28c7dcfbfd71)

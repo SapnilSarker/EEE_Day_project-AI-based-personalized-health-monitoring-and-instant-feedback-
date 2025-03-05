@@ -1,0 +1,203 @@
+import serial.tools.list_ports
+import serial
+import time
+import csv
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from collections import deque
+import datetime
+import threading
+
+# List all available ports
+ports = serial.tools.list_ports.comports()
+portsList = ['COM2']
+
+#for onePort in ports:
+#    portsList.append(str(onePort))
+ #   print(str(onePort))
+
+portVar = "COM2" 
+
+# Determine the selected port
+#for x in range(0, len(portsList)):
+#    if portsList[x].startswith("COM2" + str(val)):
+#        portVar = "COM2" 
+#        print(portVar)
+
+# Setup the serial connection
+serialInst = serial.Serial()
+serialInst.baudrate = 9600
+serialInst.port = portVar
+serialInst.open()
+
+# Open a CSV file to store the data
+with open('anik_data3.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+
+    # Delay for 3 seconds before starting to record
+    time.sleep(3)
+
+    # Start time for recording
+    start_time = time.time()
+
+    # Initialize data containers for plotting
+    x=100000
+    times = deque(maxlen=x)  # Adjust the maxlen to 857
+    values = deque(maxlen=x)  # Adjust the maxlen to 857
+    data_points_collected = 0  # Counter for data points collected
+
+    # Function to collect data from Arduino and write to CSV
+# Function to collect data from Arduino and write to CSV
+    def collect_data():
+        global data_points_collected
+        while data_points_collected < x:  # Continue until 100 data points are collected
+            try:
+                if serialInst.in_waiting:
+                    packet = serialInst.readline().decode('utf').rstrip('\n')
+                    data_point = int(packet)
+                    current_time = time.time() - start_time
+                    times.append(current_time)
+                    values.append(data_point)
+                    data_points_collected += 1
+                    #print(f'{data_point}')
+                    writer.writerow([current_time, data_point])  # Write data to CSV
+                    file.flush()  # Ensure the data is written immediately to the file
+            except ValueError as e:
+                pass#print(f"Error: {e}, could not convert data to integer")
+
+
+    # Start a separate thread for data collection
+    data_thread = threading.Thread(target=collect_data)
+    data_thread.daemon = True
+    data_thread.start()
+
+    # Set up the plot
+    fig, ax = plt.subplots()
+    line, = ax.plot([], [], lw=2)
+
+    def init():
+        ax.set_ylim(0, 1000)  # Adjust y-axis limits based on your data range
+        ax.set_xlim(0, 10)  # Adjust as needed
+        return line,
+
+    def update(frame):
+        if times:  # Check if 'times' is not empty
+            line.set_data(times, values)
+            ax.relim()
+            ax.autoscale_view()
+            ax.set_xlim(max(0, max(times) - 10), max(times))  # Update x-axis limits based on data
+        return line,
+
+# Modify the FuncAnimation call to include save_count
+ani = animation.FuncAnimation(fig, update, init_func=init, frames=1000, blit=True, save_count=1000)
+
+plt.show()
+
+# Close the serial connection
+serialInst.close()
+#import tensorflow as tf
+#from tensorflow import keras
+from itertools import islice
+from collections import deque
+first_100 = list(values)
+#print(first_100)
+import pandas as pd
+df_ours = pd.DataFrame(first_100)
+#print(df_ours)
+new_df = df_ours.iloc[100:957]
+new_df1 = new_df.T
+#print(new_df1.shape)
+normalized_df=(new_df1/750)
+print(normalized_df)
+
+#print(values)
+#dataset = values[100:957]
+#print(dataset)
+#plt.close()
+import tensorflow as tf
+from tensorflow import keras
+loaded_model = tf.keras.models.load_model("regression_model.h5")
+predicted_output = loaded_model.predict(normalized_df)
+print(predicted_output)
+
+#here is the code for telegram bot
+import requests
+from urllib.parse import quote
+def telegram_bot_sendtext(bot_message):
+    bot_token = '6408347648:AAEdmV3Guchw1fcji3yj2Oc7XbJXoTLGm8I'
+    bot_chatID = '854965468' # Replace with your chat ID
+    encoded_message = quote(bot_message)
+    
+    send_text = f'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={bot_chatID}&parse_mode=Markdown&text={encoded_message}'
+
+    try:
+        response = requests.post(send_text)
+        return response.json()
+    except Exception as e:
+        print("Error in sending message: ", e)
+        return None
+
+# Example usage
+value = predicted_output[0]
+messege = 'Your heart is well. Your capnography value is ' + str(value) + ' mmHg'   
+telegram_bot_sendtext(messege)
+#print("5.5")
+// Variables
+int PulseSensorPurplePin = 0;        // Pulse Sensor PURPLE WIRE connected to ANALOG PIN 0
+int LED = LED_BUILTIN;   // The on-board Arduino LED
+int Signal;                // holds the incoming raw data. Signal value can range from 0-1024
+int Threshold = 550;       // Determine which Signal to "count as a beat" and which to ignore.
+bool startReceiving = false; // Flag to indicate whether to start receiving Pulse Sensor data
+
+void setup() {
+  pinMode(LED, OUTPUT); // Pin that will blink to your heartbeat!
+  Serial.begin(9600);  // Set up Serial Communication at a certain speed.
+}
+
+void loop() {
+  if (startReceiving) {
+    Signal = analogRead(PulseSensorPurplePin);  // Read the PulseSensor's value.
+    Serial.println(Signal); // Send the Signal value to Serial Plotter.
+
+    if (Signal > Threshold) {
+      digitalWrite(LED, HIGH); // If the signal is above the Threshold, turn on the LED.
+    } else {
+      digitalWrite(LED, LOW); // Else, turn off the LED.
+    }
+  } else {
+    int sensorValue = analogRead(A2); // Read the analog voltage on pin A2
+    float voltage = sensorValue * (5.0 / 1023.0); // Convert sensor value to voltage (assuming 5V reference)
+
+    if (voltage > 2.0) {
+      startReceiving = true; // If voltage is greater than 2 volts, start receiving Pulse Sensor data.
+    }
+  }
+
+  delay(10);
+}
+//Include the library files
+#define BLYNK_TEMPLATE_ID "TMPL6EUGHsiLL"
+#define BLYNK_TEMPLATE_NAME "LED test"
+#define BLYNK_AUTH_TOKEN "LPtPOadlJYrcd690FwhNMiCkN8u51MxP"
+
+#define BLYNK_PRINT Serial
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+
+// Enter your Auth token
+char auth[] = "LPtPOadlJYrcd690FwhNMiCkN8u51MxP";
+
+//Enter your WIFI SSID and password
+char ssid[] = "Bison";
+char pass[] = "00000000";
+
+void setup(){
+  // Debug console
+  Serial.begin(9600);
+  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
+}
+
+void loop(){
+  Blynk.run();
+}

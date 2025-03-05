@@ -5,3 +5,4 @@ Contributor: Sapnil Sarker Bipro, Md. Anik Hasan, Muhammad Sudipto Siam Dip
 
 Achievement: 2nd Prize, EEE Day 2023, RUET (National Event)
 ![image](https://github.com/user-attachments/assets/42ee01e6-387f-4806-964c-28c7dcfbfd71)
+![image](https://github.com/user-attachments/assets/b84099fe-62b5-4324-82b7-d98b39a73ada)
